@@ -8,7 +8,8 @@
 
 namespace softmax
 {
-    namespace {
+    namespace
+    {
         constexpr int BLOCK_SIZE = 256;
     }
     template <typename T>
@@ -132,13 +133,16 @@ namespace softmax
         float d; // exp sum
     };
 
-    __device__ __forceinline__ MD_F reduceMDFOp(MD_F &a, MD_F &b)
+    struct MDFOp
     {
-        MD_F ret;
-        ret.m = max(a.m, b.m);
-        ret.d = a.d * __expf(a.m - ret.m) + b.d * __expf(b.m - ret.m);
-        return ret;
-    }
+        __device__ __forceinline__ MD_F operator()(MD_F &a, MD_F &b)
+        {
+            MD_F ret;
+            ret.m = max(a.m, b.m);
+            ret.d = a.d * __expf(a.m - ret.m) + b.d * __expf(b.m - ret.m);
+            return ret;
+        }
+    };
 
     __global__ void onlineSoftmaxKernel(const float *__restrict__ mat, float *__restrict__ output, const int ncol)
     {
@@ -151,14 +155,14 @@ namespace softmax
         {
             mdf_tmp.m = mat[blockIdx.x * ncol + i];
             mdf_tmp.d = 1.0f;
-            mdf_val = reduceMDFOp(mdf_tmp, mdf_val);
+            mdf_val = MDFOp()(mdf_tmp, mdf_val);
         }
         __syncthreads();
 
         typedef cub::BlockReduce<MD_F, BLOCK_SIZE> BlockReduce;
         __shared__ typename BlockReduce::TempStorage tempStorage;
         __shared__ MD_F mdf_total;
-        mdf_val = BlockReduce(tempStorage).Reduce(mdf_val, reduceMDFOp);
+        mdf_val = BlockReduce(tempStorage).Reduce(mdf_val, MDFOp());
         if (threadIdx.x == 0)
         {
             mdf_total = mdf_val;
