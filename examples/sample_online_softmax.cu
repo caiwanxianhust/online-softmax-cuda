@@ -41,13 +41,13 @@ void timingGemv(const float *A, float *B, const int M, const int N)
     CHECK_CUDA_ERROR(cudaEventRecord(start));
     for (int i = 0; i < REPEAT_NUM; ++i)
     {
-        softmax::launchSoftmaxKernel(A, B, N, M);
+        softmax::launchOnlineSoftmaxKernel(A, B, N, M);
     }
     CHECK_CUDA_ERROR(cudaEventRecord(stop));
     CHECK_CUDA_ERROR(cudaEventSynchronize(stop));
     float elapsed_time;
     CHECK_CUDA_ERROR(cudaEventElapsedTime(&elapsed_time, start, stop));
-    printf("alogrithm: naive kernel, elapsed_time: %g ms\n", elapsed_time / REPEAT_NUM);
+    printf("alogrithm: online softmax kernel, elapsed_time: %g ms\n", elapsed_time / REPEAT_NUM);
 }
 
 int main(int argc, char *argv[])
