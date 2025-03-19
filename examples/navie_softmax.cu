@@ -53,7 +53,7 @@ void timingGemv(const float *A, float *B, const int M, const int N)
 int main(int argc, char *argv[])
 {
     const int M = 128;
-    const int N = 2048 * 128;
+    const int N = 2048 * 2048;
 
     float *h_a = new float[M * N];
     float *h_b = new float[M * N];
@@ -65,7 +65,7 @@ int main(int argc, char *argv[])
         }
     }
 
-    printMatrix(h_a, (char *)("Matrix input: "), M, N, 128, 128, 112, 112);
+    // printMatrix(h_a, (char *)("Matrix input: "), M, N, 128, 128, 112, 112);
 
     float *d_a;
     float *d_b;
@@ -78,7 +78,7 @@ int main(int argc, char *argv[])
 
     CHECK_CUDA_ERROR(cudaMemcpy(h_b, d_b, sizeof(float) * M * N, cudaMemcpyDeviceToHost));
 
-    printMatrix(h_b, (char *)("Matrix output: "), M, N, 128, 128, 112, 112);
+    // printMatrix(h_b, (char *)("Matrix output: "), M, N, 128, 128, 112, 112);
 
     CHECK_CUDA_ERROR(cudaFree(d_a));
     CHECK_CUDA_ERROR(cudaFree(d_b));
